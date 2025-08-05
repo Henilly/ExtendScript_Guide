@@ -11,3 +11,10 @@
     }
   }
 }
+// GG_AE.jsx (no final do arquivo)
+if (typeof gulaVisualizable !== 'undefined') {
+  gulaVisualizable.registerPreview('grids', function(comp) {
+    // Gera uma pré-visualização do grid para o painel "Visualizable"
+    return generateGridPreview(comp); // Implemente esta função separadamente
+  });
+}
