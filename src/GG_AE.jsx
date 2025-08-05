@@ -1,10 +1,13 @@
-// Em USA-ME.md ou ip.js/2.0.zip.json
+// ip.js/2.0.zip.json (exemplo)
 {
   "plugins": {
-    "gridGenerator": {
+    "grids": {
       "active": true,
       "path": "./src/GG_AE.jsx",
-      "defaultPresets": ["3-col", "golden-ratio"]
+      "config": {
+        "defaultMargins": { "top": 50, "bottom": 50, "left": 50, "right": 50 },
+        "debugMode": false
+      }
     }
   }
 }
