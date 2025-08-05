@@ -1,4 +1,4 @@
-## ExtendScript Integration
+## Configuration (Markdown)
 ```javascript
-// Carregue o grid generator via eval()
-#include "src/GG_AE.jsx"
+// Inicialização de plugins
+gulaConfig.registerPlugin('grids', './src/GG_AE.jsx');
