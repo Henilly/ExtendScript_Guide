@@ -1,6 +1,4 @@
-// GG_AE_Pro.jsx - GuideGrid Professional
-// Licença MIT - Versão 2.0 com presets e controles avançados
-
+// GG_AE_Pro_Fixed.jsx - Versão Corrigida
 (function() {
     // Configurações e presets
     var PRESETS = {
@@ -9,7 +7,7 @@
         "Filme 16:9": { margins: 2, columns: 0, leftLine: true, rightLine: true }
     };
 
-    var currentConfig = JSON.parseJSON(JSON.stringify(PRESETS["Padrão"]));
+    var currentConfig = JSON.parse(JSON.stringify(PRESETS["Padrão"]));
 
     // Funções principais
     function clearAllGuides(comp) {
@@ -25,8 +23,8 @@
         
         // Guias de margem
         if (config.margins > 0) {
-            comp.addGuide(1, config.margins * 10); // Esquerda
-            comp.addGuide(1, comp.width - (config.margins * 10)); // Direita
+            comp.addGuide(1, config.margins * 10);
+            comp.addGuide(1, comp.width - (config.margins * 10));
         }
         
         // Colunas
@@ -38,8 +36,8 @@
         }
     }
 
-    // Interface avançada
-    var win = new Window("palette", "GuideGrid Pro", undefined, {borderless: true});
+    // Interface
+    var win = new Window("palette", "GuideGrid Pro", undefined);
     win.orientation = "column";
     
     // Painel de presets
@@ -48,8 +46,7 @@
     var presetDropdown = presetGroup.add("dropdownlist", undefined, Object.keys(PRESETS));
     presetDropdown.selection = 0;
     presetDropdown.onChange = function() {
-        var selected = this.selection.text;
-        currentConfig = JSON.parseJSON(JSON.stringify(PRESETS[selected])));
+        currentConfig = JSON.parse(JSON.stringify(PRESETS[this.selection.text]));
         updateUI();
     };
     
@@ -70,13 +67,12 @@
     var leftCheck = sideLinesGroup.add("checkbox", undefined, "Esquerda");
     var rightCheck = sideLinesGroup.add("checkbox", undefined, "Direita");
     
-    // Botões de ação
+    // Botões
     var btnGroup = win.add("group");
     var generateBtn = btnGroup.add("button", undefined, "Gerar Grid");
     var clearBtn = btnGroup.add("button", undefined, "Limpar Tudo");
     var saveBtn = btnGroup.add("button", undefined, "Salvar Preset");
     
-    // Atualiza UI
     function updateUI() {
         marginInput.text = currentConfig.margins;
         columnsInput.text = currentConfig.columns;
@@ -84,7 +80,6 @@
         rightCheck.value = currentConfig.rightLine;
     }
     
-    // Handlers
     generateBtn.onClick = function() {
         var comp = app.project.activeItem;
         if (!comp || !(comp instanceof CompItem)) {
@@ -117,11 +112,10 @@
                 rightLine: rightCheck.value
             };
             presetDropdown.removeAll();
-            presetDropdown.add("item", Object.keys(PRESETS));
+            for (var key in PRESETS) presetDropdown.add("item", key);
         }
     };
     
-    // Inicialização
     updateUI();
     win.center();
     win.show();
