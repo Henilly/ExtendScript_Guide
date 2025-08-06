@@ -1,72 +1,84 @@
-var win = new Window("palette", "Guia Simulada", undefined);
-win.orientation = "column";
+(function guideLinesTool(thisObj) {
+    function createUI(thisObj) {
+        var win = (thisObj instanceof Panel) ? thisObj : new Window("palette", "Guia Custom", undefined, { resizeable: true });
 
-win.add("statictext", undefined, "Margens (px)");
+        // Título
+        win.add("statictext", undefined, "Inserir Margens");
 
-var g = win.add("group");
-g.orientation = "row";
-g.add("statictext", undefined, "Esquerda:");
-var margemEsq = g.add("edittext", undefined, "100");
-margemEsq.characters = 5;
+        // Campos de margem
+        var group = win.add("group");
+        group.orientation = "column";
+        group.alignChildren = "left";
 
-g.add("statictext", undefined, "Direita:");
-var margemDir = g.add("edittext", undefined, "100");
-margemDir.characters = 5;
+        var topMargin = group.add("edittext", undefined, "100");
+        var bottomMargin = group.add("edittext", undefined, "100");
+        var leftMargin = group.add("edittext", undefined, "100");
+        var rightMargin = group.add("edittext", undefined, "100");
 
-g.add("statictext", undefined, "Topo:");
-var margemTopo = g.add("edittext", undefined, "100");
-margemTopo.characters = 5;
+        topMargin.characters = bottomMargin.characters = leftMargin.characters = rightMargin.characters = 5;
 
-g.add("statictext", undefined, "Base:");
-var margemBase = g.add("edittext", undefined, "100");
-margemBase.characters = 5;
+        // Botão aplicar
+        var applyBtn = win.add("button", undefined, "Aplicar Linhas");
 
-var btn = win.add("button", undefined, "Criar Guias");
+        applyBtn.onClick = function () {
+            var comp = app.project.activeItem;
+            if (!(comp instanceof CompItem)) {
+                alert("Selecione uma composição.");
+                return;
+            }
 
-btn.onClick = function () {
-    var comp = app.project.activeItem;
-    if (!comp || !(comp instanceof CompItem)) {
-        alert("Nenhuma composição ativa.");
-        return;
+            app.beginUndoGroup("Aplicar Linhas Guia");
+
+            // Remove linhas antigas
+            for (var i = comp.numLayers; i >= 1; i--) {
+                var layer = comp.layer(i);
+                if (layer.name.indexOf("LinhaGuia") === 0) {
+                    layer.remove();
+                }
+            }
+
+            var top = parseFloat(topMargin.text);
+            var bottom = parseFloat(bottomMargin.text);
+            var left = parseFloat(leftMargin.text);
+            var right = parseFloat(rightMargin.text);
+
+            var w = comp.width;
+            var h = comp.height;
+
+            function createLine(x1, y1, x2, y2, name) {
+                var line = comp.layers.addShape();
+                line.name = "LinhaGuia_" + name;
+                var contents = line.property("ADBE Root Vectors Group");
+                var shapeGroup = contents.addProperty("ADBE Vector Group");
+                var shape = shapeGroup.property("ADBE Vectors Group").addProperty("ADBE Vector Shape - Group");
+                var shapePath = new Shape();
+                shapePath.vertices = [[x1, y1], [x2, y2]];
+                shapePath.closed = false;
+                shape.property("ADBE Vector Shape").setValue(shapePath);
+
+                var stroke = shapeGroup.property("ADBE Vectors Group").addProperty("ADBE Vector Graphic - Stroke");
+                stroke.property("ADBE Vector Stroke Color").setValue([1, 0, 0]);
+                stroke.property("ADBE Vector Stroke Width").setValue(2);
+            }
+
+            // Linhas horizontais
+            createLine(0, top, w, top, "Top");
+            createLine(0, h - bottom, w, h - bottom, "Bottom");
+
+            // Linhas verticais
+            createLine(left, 0, left, h, "Left");
+            createLine(w - right, 0, w - right, h, "Right");
+
+            app.endUndoGroup();
+        };
+
+        win.layout.layout(true);
+        return win;
     }
 
-    app.beginUndoGroup("Criar Guias");
-
-    function criarLinha(pos, horizontal) {
-        var layer = comp.layers.addShape();
-        var shapeGroup = layer.property("ADBE Root Vectors Group").addProperty("ADBE Vector Group");
-        var pathGroup = shapeGroup.property("ADBE Vectors Group").addProperty("ADBE Vector Shape - Group");
-        var shape = new Shape();
-
-        if (horizontal) {
-            shape.vertices = [[0, 0], [comp.width, 0]];
-        } else {
-            shape.vertices = [[0, 0], [0, comp.height]];
-        }
-
-        shape.closed = false;
-        shape.inTangents = [[0, 0], [0, 0]];
-        shape.outTangents = [[0, 0], [0, 0]];
-        pathGroup.property("ADBE Vector Shape").setValue(shape);
-
-        shapeGroup.property("ADBE Vectors Group").addProperty("ADBE Vector Graphic - Stroke")
-            .property("ADBE Vector Stroke Width").setValue(1);
-
-        var transform = shapeGroup.property("ADBE Vector Transform Group");
-        transform.property("ADBE Vector Position").setValue(horizontal ? [0, pos] : [pos, 0]);
-
-        layer.shy = true;
-        layer.locked = true;
-        layer.guideLayer = true;
+    var myPanel = createUI(this);
+    if (myPanel instanceof Window) {
+        myPanel.center();
+        myPanel.show();
     }
-
-    criarLinha(parseInt(margemEsq.text), false);                     // Vertical esquerda
-    criarLinha(comp.width - parseInt(margemDir.text), false);       // Vertical direita
-    criarLinha(parseInt(margemTopo.text), true);                    // Horizontal topo
-    criarLinha(comp.height - parseInt(margemBase.text), true);      // Horizontal base
-
-    app.endUndoGroup();
-};
-
-win.center();
-win.show();
+})(this);
