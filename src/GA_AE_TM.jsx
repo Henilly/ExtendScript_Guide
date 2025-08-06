@@ -17,18 +17,17 @@
                 comp.removeGuide(0);
             }
 
-            var guidePositions = {
-                vertical: [0.25, 0.5, 0.75],
-                horizontal: [0.33, 0.66]
-            };
+            // Compatível com ExtendScript: uso de for clássico
+            var vertical = [0.25, 0.5, 0.75];
+            var horizontal = [0.33, 0.66];
 
-            guidePositions.vertical.forEach(function (pos) {
-                comp.addGuide(1, comp.width * pos);
-            });
+            for (var i = 0; i < vertical.length; i++) {
+                comp.addGuide(1, comp.width * vertical[i]);
+            }
 
-            guidePositions.horizontal.forEach(function (pos) {
-                comp.addGuide(2, comp.height * pos);
-            });
+            for (var j = 0; j < horizontal.length; j++) {
+                comp.addGuide(2, comp.height * horizontal[j]);
+            }
 
             return true;
         } catch (e) {
@@ -58,8 +57,7 @@
         btnCreate.onClick = function () {
             if (createSafeGuides()) {
                 btnCreate.text = "✅ Guias Criadas!";
-                // $.sleep(1500); // ⚠️ Congela UI. Use com cuidado.
-                // btnCreate.text = "✨ Criar Guias Automáticas";
+                // Não usar setTimeout aqui
             }
         };
 
