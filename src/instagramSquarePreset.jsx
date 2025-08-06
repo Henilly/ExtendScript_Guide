@@ -47,7 +47,7 @@ inputPresetName.characters = 15;
 var btnSave = grpPreset.add("button", undefined, "Salvar Preset");
 var btnApply = grpPreset.add("button", undefined, "Aplicar");
 
-// Função para salvar preset (exemplo simples - só mostra alerta)
+// Função para salvar preset (aqui só alerta, pode expandir para salvar arquivo)
 btnSave.onClick = function() {
     var name = inputPresetName.text;
     var left = parseInt(inputLeft.text);
@@ -60,26 +60,55 @@ btnSave.onClick = function() {
         return;
     }
     
-    // Aqui você pode salvar o preset em um arquivo ou variável (depende do seu fluxo)
     alert("Preset '" + name + "' salvo com margens:\nLeft: " + left + "\nRight: " + right + "\nTop: " + top + "\nBottom: " + bottom);
 }
 
-// Função para aplicar (exemplo simples - só mostra alerta)
+// Função para aplicar margens como linhas guias na composição ativa
 btnApply.onClick = function() {
     var left = parseInt(inputLeft.text);
     var right = parseInt(inputRight.text);
     var top = parseInt(inputTop.text);
     var bottom = parseInt(inputBottom.text);
-    
+
     if(isNaN(left) || isNaN(right) || isNaN(top) || isNaN(bottom)){
         alert("Valores de margem devem ser números.");
         return;
     }
-    
-    // Aqui você deve implementar a aplicação real das margens
-    alert("Aplicando margens:\nLeft: " + left + "\nRight: " + right + "\nTop: " + top + "\nBottom: " + bottom);
-}
 
-// Exibir a janela
+    var comp = app.project.activeItem;
+    if (!(comp instanceof CompItem)) {
+        alert("Abra uma composição antes de aplicar as margens.");
+        return;
+    }
+
+    app.beginUndoGroup("Aplicar Margens Guia");
+
+    // Limpar guias existentes
+    comp.guides = [];
+
+    // Criar guias verticais (Left e Right)
+    if(left > 0) {
+        comp.guides.push(comp.createGuide("VERTICAL", left));
+    }
+    if(right > 0) {
+        var posRight = comp.width - right;
+        comp.guides.push(comp.createGuide("VERTICAL", posRight));
+    }
+
+    // Criar guias horizontais (Top e Bottom)
+    if(top > 0) {
+        comp.guides.push(comp.createGuide("HORIZONTAL", top));
+    }
+    if(bottom > 0) {
+        var posBottom = comp.height - bottom;
+        comp.guides.push(comp.createGuide("HORIZONTAL", posBottom));
+    }
+
+    app.endUndoGroup();
+
+    alert("Guias aplicadas:\nLeft: " + left + "\nRight: " + right + "\nTop: " + top + "\nBottom: " + bottom);
+};
+
+// Mostrar a janela
 win.center();
 win.show();
