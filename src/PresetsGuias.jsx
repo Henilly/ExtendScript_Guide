@@ -1,80 +1,72 @@
-{
-    function createGuideLine(comp, direction, position, name) {
-        var line = comp.layers.addShape();
-        line.name = name;
+var win = new Window("palette", "Guia Simulada", undefined);
+win.orientation = "column";
 
-        // Adiciona grupo de forma
-        var shapeGroup = line.property("ADBE Root Vectors Group").addProperty("ADBE Vector Group");
-        shapeGroup.name = "Guia " + direction;
+win.add("statictext", undefined, "Margens (px)");
 
-        // Cria uma forma do tipo Shape
+var g = win.add("group");
+g.orientation = "row";
+g.add("statictext", undefined, "Esquerda:");
+var margemEsq = g.add("edittext", undefined, "100");
+margemEsq.characters = 5;
+
+g.add("statictext", undefined, "Direita:");
+var margemDir = g.add("edittext", undefined, "100");
+margemDir.characters = 5;
+
+g.add("statictext", undefined, "Topo:");
+var margemTopo = g.add("edittext", undefined, "100");
+margemTopo.characters = 5;
+
+g.add("statictext", undefined, "Base:");
+var margemBase = g.add("edittext", undefined, "100");
+margemBase.characters = 5;
+
+var btn = win.add("button", undefined, "Criar Guias");
+
+btn.onClick = function () {
+    var comp = app.project.activeItem;
+    if (!comp || !(comp instanceof CompItem)) {
+        alert("Nenhuma composição ativa.");
+        return;
+    }
+
+    app.beginUndoGroup("Criar Guias");
+
+    function criarLinha(pos, horizontal) {
+        var layer = comp.layers.addShape();
+        var shapeGroup = layer.property("ADBE Root Vectors Group").addProperty("ADBE Vector Group");
         var pathGroup = shapeGroup.property("ADBE Vectors Group").addProperty("ADBE Vector Shape - Group");
         var shape = new Shape();
 
-        var halfWidth = comp.width / 2;
-        var halfHeight = comp.height / 2;
-
-        if (direction === "VERTICAL") {
-            shape.vertices = [[0, -halfHeight], [0, halfHeight]];
+        if (horizontal) {
+            shape.vertices = [[0, 0], [comp.width, 0]];
         } else {
-            shape.vertices = [[-halfWidth, 0], [halfWidth, 0]];
+            shape.vertices = [[0, 0], [0, comp.height]];
         }
 
-        shape.inTangents = [[0,0],[0,0]];
-        shape.outTangents = [[0,0],[0,0]];
         shape.closed = false;
-
+        shape.inTangents = [[0, 0], [0, 0]];
+        shape.outTangents = [[0, 0], [0, 0]];
         pathGroup.property("ADBE Vector Shape").setValue(shape);
 
-        // Ajusta posição da linha na composição
+        shapeGroup.property("ADBE Vectors Group").addProperty("ADBE Vector Graphic - Stroke")
+            .property("ADBE Vector Stroke Width").setValue(1);
+
         var transform = shapeGroup.property("ADBE Vector Transform Group");
-        if (direction === "VERTICAL") {
-            transform.property("ADBE Vector Position").setValue([position, comp.height / 2]);
-        } else {
-            transform.property("ADBE Vector Position").setValue([comp.width / 2, position]);
-        }
+        transform.property("ADBE Vector Position").setValue(horizontal ? [0, pos] : [pos, 0]);
 
-        // Remove preenchimento
-        var fill = shapeGroup.property("ADBE Vectors Group").addProperty("ADBE Vector Graphic - Fill");
-        fill.enabled = false;
-
-        // Adiciona stroke (linha)
-        var stroke = shapeGroup.property("ADBE Vectors Group").addProperty("ADBE Vector Graphic - Stroke");
-        stroke.property("ADBE Vector Stroke Color").setValue([0, 1, 1]); // Cyan
-        stroke.property("ADBE Vector Stroke Width").setValue(1);
-
-        // Oculta da renderização
-        line.enabled = true;
-        line.locked = true;
-        line.shy = true;
-        line.guideLayer = true;
+        layer.shy = true;
+        layer.locked = true;
+        layer.guideLayer = true;
     }
 
-    var comp = app.project.activeItem;
-    if (comp && comp instanceof CompItem) {
-        app.beginUndoGroup("Criar Guias Simuladas");
+    criarLinha(parseInt(margemEsq.text), false);                     // Vertical esquerda
+    criarLinha(comp.width - parseInt(margemDir.text), false);       // Vertical direita
+    criarLinha(parseInt(margemTopo.text), true);                    // Horizontal topo
+    criarLinha(comp.height - parseInt(margemBase.text), true);      // Horizontal base
 
-        // Remove guias antigas
-        for (var i = comp.numLayers; i >= 1; i--) {
-            var lyr = comp.layer(i);
-            if (lyr.name.indexOf("Guia") === 0) lyr.remove();
-        }
+    app.endUndoGroup();
+};
 
-        // Defina as margens desejadas
-        var margemEsquerda = 100;
-        var margemDireita = 100;
-        var margemTopo = 100;
-        var margemBase = 100;
-
-        // Cria as guias simuladas
-        createGuideLine(comp, "VERTICAL", margemEsquerda, "Guia Esquerda");
-        createGuideLine(comp, "VERTICAL", comp.width - margemDireita, "Guia Direita");
-        createGuideLine(comp, "HORIZONTAL", margemTopo, "Guia Topo");
-        createGuideLine(comp, "HORIZONTAL", comp.height - margemBase, "Guia Base");
-
-        app.endUndoGroup();
-        alert("Guias criadas com sucesso!");
-    } else {
-        alert("Nenhuma composição ativa.");
-    }
-}
+win.center();
+win.show();
