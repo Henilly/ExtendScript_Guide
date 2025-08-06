@@ -19,6 +19,7 @@ var presets = {
 // Criar interface simples para escolher preset
 var win = new Window("palette", "Presets de Guias", undefined);
 win.orientation = "column";
+win.alignChildren = "left";
 
 // Lista de presets
 var dropdown = win.add("dropdownlist", undefined, getObjectKeys(presets));
@@ -31,7 +32,7 @@ btn.onClick = function () {
     var presetName = dropdown.selection.text;
     var guides = presets[presetName];
 
-    // Aqui você insere o código que realmente cria as guias no After Effects ou Photoshop
+    // Aqui você insere o código que realmente cria as guias no After Effects
     alert("Preset selecionado: " + presetName + 
         "\nLeft: " + guides.left + 
         "\nRight: " + guides.right +
